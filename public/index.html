@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2347E8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Portón">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<title>Portón</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky top bar with role switcher; welcome = hero + role cards; resident = phone column with bottom nav; guard and admin = two-column consoles */
+:root{
+  --bg:#EDF0F4; --surface:#FFFFFF; --surface2:#F4F6FA; --ink:#0D1B2A; --muted:#5B6B7E; --line:#D9DFE8;
+  --accent:#2347E8; --accent-ink:#FFFFFF; --soft:#E4EAFF;
+  --ok:#0B8F63; --ok-soft:#DDF5EA; --warn:#A86400; --warn-soft:#FFF0D2; --alert:#D92D20; --alert-soft:#FEE4E1;
+  --f-display:'Bricolage Grotesque',system-ui,sans-serif; --f-body:'DM Sans',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1220; --surface:#121C2E; --surface2:#182539; --ink:#E8EEF7; --muted:#94A3B8; --line:#243249;
+  --accent:#6C8CFF; --accent-ink:#0A1220; --soft:#1B2A52;
+  --ok:#34D399; --ok-soft:#10382C; --warn:#F5B040; --warn-soft:#3A2C0E; --alert:#FF6B5E; --alert-soft:#3F1A17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1220; --surface:#121C2E; --surface2:#182539; --ink:#E8EEF7; --muted:#94A3B8; --line:#243249;
+  --accent:#6C8CFF; --accent-ink:#0A1220; --soft:#1B2A52;
+  --ok:#34D399; --ok-soft:#10382C; --warn:#F5B040; --warn-soft:#3A2C0E; --alert:#FF6B5E; --alert-soft:#3F1A17; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.15;text-wrap:balance}
+h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:800;letter-spacing:-.03em}
+h2{font-size:1.25rem;font-weight:800;letter-spacing:-.01em} h3{font-size:1rem;font-weight:700}
+p{margin:0} button{font:inherit;color:inherit}
+.mono{font-family:var(--f-mono);letter-spacing:.02em}
+.muted{color:var(--muted)} .small{font-size:.84rem} .caps{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;padding-block:14px;max-width:1120px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:1.35rem;letter-spacing:-.02em}
+.brand small{display:block;font-family:var(--f-body);font-weight:500;font-size:.74rem;color:var(--muted);letter-spacing:0}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:8px 14px;border-radius:9px;cursor:pointer;font-weight:700;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+main{max-width:1120px;margin:8px auto 0}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:12px 16px;border-radius:12px;cursor:pointer;min-height:44px}
+.btn:hover{filter:brightness(1.07)} .btn.ghost{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.btn.ok{background:var(--ok);color:#fff} .btn.danger{background:var(--alert);color:#fff} .btn.sm{padding:7px 11px;min-height:34px;font-size:.86rem;border-radius:9px}
+.btn.block{width:100%} .btn:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.flat{background:var(--surface2);border-color:transparent}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between;min-width:0;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pill{display:inline-block;font-size:.74rem;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.alert{background:var(--alert-soft);color:var(--alert)} .pill.acc{background:var(--soft);color:var(--accent)}
+label{display:flex;flex-direction:column;gap:5px;font-size:.82rem;font-weight:700;color:var(--muted);min-width:0}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%;min-width:0}
+textarea{min-height:80px;resize:vertical}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:700;font-size:.88rem}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:disabled{opacity:.4;text-decoration:line-through;cursor:not-allowed}
+.list{display:flex;flex-direction:column}
+.item{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid var(--line);min-width:0}
+.item:first-child{border-top:0;padding-top:0} .item>div{min-width:0} .item b{overflow-wrap:anywhere}
+.empty{padding:18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);text-align:center}
+.linkbtn{border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer;padding:8px 0;font-size:.84rem}
+/* welcome */
+.hero{max-width:640px;margin:28px auto 22px;display:flex;flex-direction:column;gap:12px}
+.hero p{font-size:1.05rem;color:var(--muted)}
+.roles{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.rolecard{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.rolecard:hover{border-color:var(--accent)} .rolecard b{font-family:var(--f-display);font-size:1.1rem}
+.formwrap{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.code{font-family:var(--f-mono);font-size:1.8rem;font-weight:700;letter-spacing:.12em}
+/* resident phone */
+.phone{max-width:440px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:30px;overflow:clip;min-height:680px;display:flex;flex-direction:column}
+.screen{padding:22px 18px;flex:1;display:flex;flex-direction:column;gap:16px}
+.nav{position:sticky;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav button{border:0;background:none;padding:10px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.7rem;font-weight:700;color:var(--muted);cursor:pointer}
+.nav button[aria-current="page"]{color:var(--accent)} .nav svg{width:22px;height:22px}
+.hello{font-family:var(--f-display);font-weight:800;font-size:1.6rem;letter-spacing:-.02em}
+.call{background:var(--accent);color:var(--accent-ink);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;animation:ring 1.6s ease-in-out infinite}
+.call .btn{background:var(--accent-ink);color:var(--accent)} .call .btn.ghost{background:transparent;color:var(--accent-ink);border:1px solid currentColor}
+@keyframes ring{50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--accent) 22%,transparent)}}
+@media (prefers-reduced-motion:reduce){.call{animation:none}}
+.qr{background:#fff;padding:8px;border-radius:10px;width:fit-content;line-height:0}
+.panic{border:2px solid var(--alert);background:var(--alert-soft);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quick button{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;font-weight:700}
+.quick svg{width:22px;height:22px;color:var(--accent)}
+.msg{max-width:85%;padding:9px 12px;border-radius:14px;background:var(--surface2)} .msg.me{align-self:flex-end;background:var(--accent);color:var(--accent-ink)}
+/* guard + admin */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px;align-items:start}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.kpi b{display:block;font-family:var(--f-display);font-size:1.8rem;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.banner{background:var(--alert);color:#fff;border-radius:14px;padding:14px 16px;display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.banner .btn{background:#fff;color:var(--alert)}
+.approve{border:2px solid var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-weight:700;z-index:40;max-width:90vw}
+@media (max-width:800px){.cols{grid-template-columns:minmax(0,1fr)}.fgrid{grid-template-columns:1fr}}
+</style>
+
+<style>[hidden]{display:none!important}html{color-scheme:light}body{margin:0;font-size:14px}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="var(--accent)"/><path d="M8 26V13l9-5 9 5v13M13 26v-8h8v8M8 26h18" fill="none" stroke="var(--accent-ink)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+    <div>Portón<small id="cname">Smart access for your building</small></div>
+  </div>
+  <div class="tools" id="tools"></div>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const T=d=>new Date(d).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+const D=d=>new Date(d).toLocaleDateString([], {month:'short',day:'numeric'});
+const DT=d=>D(d)+' · '+T(d);
+const iso=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d};
+const rnd=(n,al)=>{al=al||'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<n;i++)s+=al[Math.floor(Math.random()*al.length)];return s};
+const KIND={guest:'Guest',delivery:'Delivery',service:'Service provider',ride:'Rideshare'};
+const ROLE={resident:'Resident',guard:'Guard booth',admin:'Admin'};
+const AMEN={
+  pool:{name:'Pool',note:'Max 12 people',slots:['06:00–08:00','08:00–10:00','10:00–12:00','14:00–16:00','16:00–18:00','18:00–20:00']},
+  gym:{name:'Gym',note:'Max 6 people',slots:['06:00–08:00','08:00–10:00','17:00–19:00','19:00–21:00']},
+  tennis:{name:'Tennis court',note:'Doubles',slots:['06:00–08:00','08:00–10:00','16:00–18:00','18:00–20:00']},
+  bbq:{name:'BBQ area',note:'Cleaning is on you',slots:['12:00–15:00','15:00–18:00','18:00–21:00']},
+  social:{name:'Social room',note:'Up to 40 guests',slots:['10:00–14:00','14:00–18:00','18:00–22:00']}
+};
+const startH=s=>parseInt(s.slice(0,2),10);
+const blank=()=>({users:[],visits:[],passes:[],bookings:[],posts:[],alerts:[],messages:[]});
+const S={ready:false,err:null,user:null,authMode:'login',uid:null,mems:[],m:null,role:null,adding:false,join:null,tab:'home',
+  bk:{amenity:'pool',date:iso(addDays(1)),slot:null},scan:null,panic:null,confirmLeave:false,subKey:'~',data:blank(),community:null,toastT:null};
+
+const IC={
+  home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',
+  door:'<path d="M6 21V4h10v17M4 21h16M13 12.5v.01"/>',
+  cal:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  chat:'<path d="M5 5h14v10H10l-5 4z"/>',
+  pass:'<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 10h8M8 14h5"/>'
+};
+const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+const pill=([t,c])=>`<span class="pill ${c}">${esc(t)}</span>`;
+function toast(m){const e=$('#toast');e.textContent=m;e.hidden=false;clearTimeout(S.toastT);S.toastT=setTimeout(()=>e.hidden=true,3000)}
+
+/* ---------- derived ---------- */
+const P=()=>'communities/'+S.m.cid;
+const me=()=>S.m;
+const sorted=(a,k,dir)=>[...a].sort((x,y)=>(dir==='asc'?1:-1)*((x[k]||0)-(y[k]||0)));
+const residents=()=>S.data.users.filter(u=>u.role==='resident');
+const approvedApts=()=>[...new Set(residents().filter(u=>u.status==='approved').map(u=>u.apt))].sort();
+const call=()=>sorted(S.data.visits,'t').find(v=>v.apt===me().apt&&v.status==='pending');
+const openAlerts=()=>sorted(S.data.alerts,'t').filter(a=>!a.closed);
+const myAlert=()=>openAlerts().find(a=>a.uid===S.uid);
+const passState=p=>{
+  if(p.revoked)return['Revoked','alert']; if(p.expires<Date.now())return['Expired','warn'];
+  if(p.max&&p.uses>=p.max)return['Used','neutral']; return['Active','ok'];
+};
+const vPill=s=>({pending:['Waiting','warn'],approved:['Approved','ok'],denied:['Denied','alert'],entered:['Entered','acc']}[s]||[s,'neutral']);
+
+/* ---------- data layer ---------- */
+const fail=e=>{toast((e&&e.message)||'Something went wrong. Try again.')};
+async function api(op,body,get){
+  const opt={credentials:'same-origin'};let url='/api';
+  if(get){url+='?'+new URLSearchParams(Object.assign({op},body))}
+  else{opt.method='POST';opt.headers={'content-type':'application/json'};opt.body=JSON.stringify(Object.assign({op},body))}
+  const r=await fetch(url,opt);let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok){const e=new Error(j.error||'Something went wrong. Try again.');e.status=r.status;throw e}
+  return j;
+}
+const seenA=new Set(),seenC=new Set();let primed=false;
+function pick(){
+  let saved=null;try{saved=localStorage.getItem('porton.role')}catch(e){}
+  const pr={admin:0,guard:1,resident:2};
+  const m=S.mems.find(x=>x.role===(S.role||saved))||[...S.mems].sort((a,b)=>pr[a.role]-pr[b.role])[0]||null;
+  S.m=m;S.role=m?m.role:null;
+  const key=m?[m.role,m.cid,m.status==='approved'].join('|'):'';
+  if(key!==S.subKey){S.subKey=key;S.tab='home';S.scan=null;S.panic=null;S.confirmLeave=false;S.data=blank();S.community=null;seenA.clear();seenC.clear();primed=false}
+}
+function notify(){
+  if(!S.m)return;
+  const ring=[];
+  if(S.m.role==='resident'){const c=call();if(c)ring.push(['Gate: '+c.name,c.id,seenC,'Someone is asking to come in'])}
+  if(S.m.role==='guard'||S.m.role==='admin'){openAlerts().forEach(a=>{if(!a.ack)ring.push(['Panic alert · Apt '+a.apt,a.id,seenA,a.name])})}
+  ring.forEach(([title,id,set,body])=>{
+    if(set.has(id))return;set.add(id);
+    if(!primed)return;
+    toast(title);try{navigator.vibrate&&navigator.vibrate([250,100,250])}catch(e){}
+    try{if(window.Notification&&Notification.permission==='granted')new Notification(title,{body:body||''})}catch(e){}
+  });
+  primed=true;
+}
+let syncing=false,again=false;
+async function sync(){
+  if(syncing){again=true;return}
+  syncing=true;
+  try{
+    do{
+      again=false;
+      let j=await api('sync',{m:S.m?S.m.id:''},true);
+      S.ready=true;S.err=null;S.user=j.user||null;
+      if(!S.user){S.mems=[];S.m=null;S.role=null;S.uid=null;S.data=blank();S.community=null}
+      else{
+        S.uid=S.user.id;S.mems=j.mems||[];
+        const before=S.m&&S.m.id;pick();
+        if(S.m&&S.m.id!==before)j=await api('sync',{m:S.m.id},true);
+        if(S.m&&j.state){S.community=j.state.community;S.data=Object.assign(blank(),j.state.data)}else{S.community=null;S.data=blank()}
+        notify();
+      }
+      kick();
+    }while(again);
+  }catch(e){if(!S.ready)S.err='Could not reach the server. Check your connection and reload.';kick()}
+  finally{syncing=false}
+}
+let pend=false;
+function kick(){
+  const a=document.activeElement;
+  const typing=a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&$('#app').contains(a)&&a.type!=='checkbox'&&a.type!=='date';
+  if(typing){pend=true;return}
+  pend=false;render();
+}
+document.addEventListener('focusout',()=>{setTimeout(()=>{if(pend)kick()},300)});
+
+/* ---------- views ---------- */
+function visitRow(v){return `<div class="item"><div><b>${esc(v.name)}</b><div class="small muted">${esc(KIND[v.kind]||v.kind)}${v.plate?' · <span class="mono">'+esc(v.plate)+'</span>':''} · ${esc(v.via)} · ${T(v.t)}</div></div>${pill(vPill(v.status))}</div>`}
+function leaveBlock(){
+  return S.confirmLeave?`<div class="card flat"><b>Leave this ${S.m.role==='admin'?'admin account':'role'}?</b><div class="small muted">${S.m.role==='admin'?'Your community stays, but you lose admin access here.':'You will need approval again to come back.'}</div><div class="row"><button class="btn ghost sm" data-act="leave-no">Keep it</button><button class="btn danger sm" data-act="leave-go">Leave</button></div></div>`:`<button class="linkbtn" data-act="leave-ask">Leave this role</button>`;
+}
+/* welcome / onboarding */
+function welcome(){
+  const held=new Set(S.mems.map(m=>m.role));
+  const cards=[['resident','I live here','Join your building with its code. Your administrator approves you.'],['admin','I manage a building','Create your community and approve residents.'],['guard','I work the gate','Open the booth with the building code and PIN.']].filter(c=>!held.has(c[0]));
+  if(S.join&&!held.has(S.join))return `<div class="formwrap"><button class="linkbtn" data-act="join" data-v="">Back</button>${joinForm(S.join)}</div>`;
+  return `<div class="hero"><h1>Your building, at the gate.</h1><p>Visitors, passes, reservations and security alerts for gated communities and PHs, in one app for residents, guards and administrators.</p></div>
+  <div class="roles">${cards.map(([k,t,d])=>`<button class="rolecard" data-act="join" data-v="${k}"><b>${t}</b><span class="small muted">${d}</span></button>`).join('')}</div>
+  ${S.mems.length?`<div style="text-align:center"><button class="linkbtn" data-act="cancel-add">Cancel</button></div>`:''}`;
+}
+function joinForm(r){
+  if(r==='admin')return `<form class="card" data-form="admin-new"><h2>Create your community</h2><p class="small muted">You become its administrator. You get a code to give residents and a PIN for the guard booth.</p>
+    <label>Your name<input name="name" required maxlength="40" id="an" autocomplete="name" value="${esc(S.user.name)}"></label>
+    <label>Community name<input name="cname" required maxlength="50" id="acn" placeholder="PH Torre Mirador"></label>
+    <label>City or address<input name="city" maxlength="60" id="acity" placeholder="Panama City"></label>
+    <button class="btn">Create community</button></form>`;
+  if(r==='resident')return `<form class="card" data-form="res-join"><h2>Join your building</h2><p class="small muted">Ask your administrator for the community code. They will approve your request.</p>
+    <label>Community code<input name="code" required maxlength="10" id="rcode" class="mono" style="text-transform:uppercase" placeholder="K7M2QX"></label>
+    <div class="fgrid"><label>Your name<input name="name" required maxlength="40" id="rname" autocomplete="name" value="${esc(S.user.name)}"></label>
+    <label>Apartment number<input name="apt" required maxlength="10" id="rapt" placeholder="12B"></label></div>
+    <button class="btn">Request access</button></form>`;
+  return `<form class="card" data-form="guard-join"><h2>Open the booth</h2><p class="small muted">Use the community code and the booth PIN from your administrator.</p>
+    <label>Community code<input name="code" required maxlength="10" id="gcode0" class="mono" style="text-transform:uppercase"></label>
+    <div class="fgrid"><label>Booth PIN<input name="pin" required maxlength="4" inputmode="numeric" id="gpin" class="mono"></label><label>Your name<input name="name" required maxlength="40" id="gname0" value="${esc(S.user.name)}"></label></div>
+    <button class="btn">Start shift</button></form>`;
+}
+/* resident */
+function rWait(){
+  const m=S.m,c=S.community,st=m.status;
+  return `<div class="phone"><div class="screen" style="justify-content:center">
+    <div class="caps">${esc(c?c.name:'Community')}</div>
+    <h2 class="hello">${st==='pending'?'Request sent':st==='rejected'?'Request declined':'Access removed'}</h2>
+    <div class="card flat"><div class="row"><b>${esc(m.name)}</b>${pill(st==='pending'?['Waiting for approval','warn']:['Not approved','alert'])}</div><div class="small muted">Apartment ${esc(m.apt)}${c?' · '+esc(c.adminName)+' is the administrator':''}</div></div>
+    ${st==='pending'?'<p class="muted">Your administrator sees this in their approvals list. This screen opens up by itself once they approve you.</p>':`<p class="muted">Your administrator did not approve this request. You can send it again if the name or apartment was wrong.</p><button class="btn" data-act="reapply">Send request again</button>`}
+    ${leaveBlock()}</div></div>`;
+}
+function rHome(){
+  const c=call(),al=myAlert(),h=new Date().getHours(),g=h<12?'Good morning':h<19?'Good afternoon':'Good evening';
+  const mine=sorted(S.data.visits,'t').slice(0,3), post=sorted(S.data.posts,'t')[0];
+  return `<div><div class="caps">Apt ${esc(me().apt)} · ${esc(S.community?S.community.name:'')}</div><div class="hello">${g}, ${esc(me().name.split(' ')[0])}</div></div>
+  ${c?`<div class="call" role="alert"><div class="caps" style="color:inherit;opacity:.8">Virtual intercom · Gate</div>
+    <div><b style="font-size:1.15rem">${esc(c.name)}</b><div class="small" style="opacity:.9">${esc(KIND[c.kind])}${c.plate?' · '+esc(c.plate):''} is asking to come in</div></div>
+    <div class="row" style="flex-wrap:nowrap"><button class="btn ghost block" data-act="deny" data-id="${c.id}">Deny</button><button class="btn block" data-act="approve" data-id="${c.id}">Let them in</button></div></div>`:''}
+  <div class="quick">
+    <button data-act="tab" data-v="visitors">${ic('pass')}New visitor pass</button>
+    <button data-act="tab" data-v="book">${ic('cal')}Book an area</button>
+    <button data-act="tab" data-v="community">${ic('chat')}Message admin</button>
+    <button data-act="simulate">${ic('door')}Test: ring my door</button>
+  </div>
+  ${post?`<div class="card flat"><div class="row"><b>${esc(post.title)}</b>${pill(post.level==='Important'?['Important','warn']:['Info','acc'])}</div><p class="small">${esc(post.body)}</p></div>`:''}
+  <div><div class="row" style="margin-bottom:8px"><h3>Recent visitors</h3><button class="btn ghost sm" data-act="tab" data-v="visitors">See all</button></div>
+    <div class="list">${mine.length?mine.map(visitRow).join(''):'<div class="empty">No visitors yet.</div>'}</div></div>
+  ${rPanic(al)}${leaveBlock()}`;
+}
+function rPanic(al){
+  if(al)return `<div class="panic"><b>${al.ack?'Guard is on the way':'Alert sent at '+T(al.t)}</b><p class="small">${al.ack?'Acknowledged at '+T(al.ack)+'. Stay where you are if it is safe.':'The booth and building admin were notified with your unit number.'}</p><button class="btn ghost" data-act="panic-cancel" data-id="${al.id}">I am safe, cancel alert</button></div>`;
+  if(S.panic==='confirm')return `<div class="panic"><b>Send a panic alert?</b><p class="small">The guard booth and admin get your name and apartment right away.</p><div class="row" style="flex-wrap:nowrap"><button class="btn ghost block" data-act="panic-no">Not now</button><button class="btn danger block" data-act="panic-send">Send alert</button></div></div>`;
+  return `<button class="btn danger block" data-act="panic-ask" style="min-height:52px">Panic button</button>`;
+}
+function rVisitors(){
+  const passes=sorted(S.data.passes,'t'), log=sorted(S.data.visits,'t');
+  return `<h2>Visitors</h2>
+  <form class="card" data-form="pass"><h3>Create a pass</h3>
+    <label>Visitor name<input name="name" required maxlength="40" placeholder="e.g. Carolina Vega" id="pname"></label>
+    <div class="fgrid"><label>Type<select name="kind" id="pkind">${Object.entries(KIND).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label>
+    <label>Valid for<select name="valid" id="pvalid"><option value="today">Today only</option><option value="24h">24 hours</option><option value="7d">7 days</option><option value="30d">30 days</option></select></label></div>
+    <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" name="single" id="psingle" style="width:auto;min-height:0"> Single entry</label>
+    <button class="btn">Create pass</button></form>
+  <div><h3 style="margin-bottom:8px">Your passes</h3><div class="stack">${passes.length?passes.map(p=>{const st=passState(p);return `
+    <div class="card"><div class="row"><div><b>${esc(p.name)}</b><div class="small muted">${esc(KIND[p.kind])} · until ${DT(p.expires)} · ${p.max?(p.uses+'/'+p.max+' entries'):p.uses+' entries'}</div></div>${pill(st)}</div>
+    ${st[1]==='ok'?`<div class="row"><div class="qr" data-qr="${esc(p.code)}"></div><div class="stack" style="align-items:flex-end"><div class="mono" style="font-size:1.1rem;font-weight:700">${esc(p.code)}</div>
+      <button class="btn ghost sm" data-act="copy" data-v="${esc(p.code)}">Copy code</button>
+      <a class="btn ghost sm" style="text-decoration:none;display:inline-flex;align-items:center" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Your access pass for '+(S.community?S.community.name:'the building')+' (Apt '+me().apt+'): '+p.code+'. Valid until '+DT(p.expires))}">Send by WhatsApp</a>
+      <button class="btn ghost sm" data-act="revoke" data-id="${p.id}">Revoke</button></div></div>`:''}</div>`}).join(''):'<div class="empty">No passes yet.</div>'}</div></div>
+  <div><h3 style="margin-bottom:8px">Entry log</h3><div class="list">${log.length?log.map(visitRow).join(''):'<div class="empty">Nothing yet.</div>'}</div></div>`;
+}
+const taken=(a,d,s)=>S.data.bookings.some(b=>b.amenity===a&&b.date===d&&b.slot===s&&b.status==='confirmed');
+function rBook(){
+  const b=S.bk,am=AMEN[b.amenity],today=iso(new Date()),isToday=b.date===today,h=new Date().getHours();
+  const mine=S.data.bookings.filter(x=>x.uid===S.uid&&x.status==='confirmed').sort((x,y)=>x.date.localeCompare(y.date));
+  return `<h2>Reservations</h2>
+  <div class="chips" role="group" aria-label="Area">${Object.entries(AMEN).map(([k,v])=>`<button class="chip" aria-pressed="${b.amenity===k}" data-act="bk-am" data-v="${k}">${v.name}</button>`).join('')}</div>
+  <div class="card"><div><b>${am.name}</b><div class="small muted">${am.note}</div></div>
+    <label>Date<input type="date" id="bkdate" value="${b.date}" min="${today}"></label>
+    <div class="caps">Time slot</div>
+    <div class="chips">${am.slots.map(s=>{const off=taken(b.amenity,b.date,s)||(isToday&&startH(s)<=h);return `<button class="chip" aria-pressed="${b.slot===s}" ${off?'disabled':''} data-act="bk-slot" data-v="${s}">${s}</button>`}).join('')}</div>
+    <button class="btn" data-act="bk-go" ${b.slot?'':'disabled'}>${b.slot?'Confirm '+b.slot:'Pick a time slot'}</button></div>
+  <div><h3 style="margin-bottom:8px">My reservations</h3><div class="list">${mine.length?mine.map(x=>`<div class="item"><div><b>${AMEN[x.amenity].name}</b><div class="small muted">${D(x.date+'T12:00')} · ${x.slot}</div></div><button class="btn ghost sm" data-act="bk-cancel" data-id="${x.id}">Cancel</button></div>`).join(''):'<div class="empty">No upcoming reservations.</div>'}</div></div>`;
+}
+function rCommunity(){
+  const msgs=sorted(S.data.messages,'t','asc');
+  return `<h2>Community</h2>
+  <div class="stack">${sorted(S.data.posts,'t').length?sorted(S.data.posts,'t').map(p=>`<div class="card"><div class="row"><b>${esc(p.title)}</b>${pill(p.level==='Important'?['Important','warn']:['Info','acc'])}</div><p class="small">${esc(p.body)}</p><div class="small muted">${DT(p.t)}</div></div>`).join(''):'<div class="empty">No announcements yet.</div>'}</div>
+  <div><h3 style="margin-bottom:8px">Chat with administration</h3>
+    <div class="card flat"><div class="stack">${msgs.length?msgs.map(m=>`<div class="msg ${m.from==='res'?'me':''}">${esc(m.text)}<div class="small" style="opacity:.65">${T(m.t)}</div></div>`).join(''):'<div class="small muted">Write to your administrator here.</div>'}</div></div>
+    <form class="row" style="margin-top:10px;flex-wrap:nowrap" data-form="msg"><input name="text" required maxlength="300" placeholder="Write a message" id="msgtxt"><button class="btn">Send</button></form></div>`;
+}
+function resident(){
+  if(S.m.status!=='approved')return rWait();
+  const t=S.tab,body={home:rHome,visitors:rVisitors,book:rBook,community:rCommunity}[t]();
+  const N=[['home','Home','home'],['visitors','Visitors','door'],['book','Book','cal'],['community','Community','chat']];
+  return `<div class="phone"><div class="screen">${body}</div><nav class="nav" aria-label="Resident">${N.map(([k,l,i])=>`<button data-act="tab" data-v="${k}" ${t===k?'aria-current="page"':''}>${ic(i)}${l}</button>`).join('')}</nav></div>`;
+}
+function authView(){
+  const reg=S.authMode==='register';
+  return `<div class="hero"><h1>Your building, at the gate.</h1><p>Visitors, passes, reservations and security alerts for gated communities and PHs. Sign in on any phone, tablet or computer.</p></div>
+  <div class="formwrap"><form class="card" data-form="${reg?'register':'login'}"><h2>${reg?'Create your account':'Sign in'}</h2>
+    ${reg?'<label>Your name<input name="name" required maxlength="60" id="un" autocomplete="name"></label>':''}
+    <label>Email<input name="email" type="email" required id="ue" autocomplete="email"></label>
+    <label>Password<input name="password" type="password" required minlength="8" id="up" autocomplete="${reg?'new-password':'current-password'}"></label>
+    <button class="btn">${reg?'Create account':'Sign in'}</button>
+    <button type="button" class="linkbtn" data-act="auth-mode" data-v="${reg?'login':'register'}">${reg?'I already have an account':'New here? Create an account'}</button></form></div>`;
+}
+/* guard */
+function guard(){
+  const al=openAlerts(), q=S.data.visits.filter(v=>v.status==='pending'||v.status==='approved');
+  const hasApp=apt=>approvedApts().includes(apt);
+  return `${al.map(a=>`<div class="banner" role="alert"><div><b>PANIC · Apt ${esc(a.apt)}</b><div class="small">${esc(a.name)} · ${T(a.t)}${a.ack?' · acknowledged '+T(a.ack):''}</div></div><div class="row">${a.ack?'':`<button class="btn sm" data-act="ack" data-id="${a.id}">Acknowledge</button>`}<button class="btn sm" data-act="resolve" data-id="${a.id}">Mark resolved</button></div></div>`).join('')}
+  <div class="cols"><div class="stack">
+    <form class="card" data-form="visit"><h2>Gate entry</h2>
+      <label>Visitor name<input name="name" required maxlength="40" id="gname"></label>
+      <div class="fgrid"><label>ID / cédula<input name="idno" required maxlength="20" id="gid" placeholder="8-123-456"></label><label>Plate<input name="plate" maxlength="10" id="gplate" placeholder="optional"></label></div>
+      <div class="fgrid"><label>Going to apartment<input name="apt" required maxlength="10" id="gapt" list="apts" placeholder="12B"></label>
+      <label>Type<select name="kind" id="gkind">${Object.entries(KIND).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label></div>
+      <datalist id="apts">${approvedApts().map(a=>`<option value="${esc(a)}"></option>`).join('')}</datalist>
+      <button class="btn">Notify resident</button></form>
+    <form class="card" data-form="scan"><h2>Scan pass</h2><div class="row" style="flex-wrap:nowrap"><input name="code" required id="gcode" class="mono" placeholder="PZ-XXXXXX" style="text-transform:uppercase"><button class="btn">Check</button></div>
+      <div>${S.scan?`<div class="card flat"><div class="row"><b>${esc(S.scan.title)}</b>${pill(S.scan.pill)}</div><div class="small muted">${esc(S.scan.sub)}</div></div>`:'<div class="small muted">Enter the code shown under the visitor’s QR.</div>'}</div></form>
+  </div>
+  <div class="stack"><div class="card"><h2>At the gate</h2><div class="list">${q.length?q.map(v=>`<div class="item"><div><b>${esc(v.name)}</b><div class="small muted">${esc(KIND[v.kind])} → Apt ${esc(v.apt)}${v.plate?' · '+esc(v.plate):''} · ${T(v.t)}</div></div>
+      <div class="row" style="flex-wrap:nowrap">${v.status==='approved'?`<button class="btn ok sm" data-act="open" data-id="${v.id}">Open gate</button>`:hasApp(v.apt)?pill(['Ringing resident','warn']):`<button class="btn ghost sm" data-act="g-deny" data-id="${v.id}">Deny</button><button class="btn sm" data-act="g-allow" data-id="${v.id}">OK’d by phone</button>`}</div></div>`).join(''):'<div class="empty">Nobody waiting.</div>'}</div></div>
+    <div class="card"><h2>Entry log</h2><div class="list">${S.data.visits.length?S.data.visits.slice(0,12).map(v=>`<div class="item"><div><b>${esc(v.name)}</b><div class="small muted">Apt ${esc(v.apt)} · ${esc(KIND[v.kind])} · ${esc(v.via)} · ${T(v.t)}</div></div>${pill(vPill(v.status))}</div>`).join(''):'<div class="empty">No entries yet.</div>'}</div></div>${leaveBlock()}</div></div>`;
+}
+/* admin */
+function admin(){
+  const c=S.community||{}, res=residents(), pending=res.filter(u=>u.status==='pending'), ok=res.filter(u=>u.status==='approved');
+  const act=S.data.passes.filter(p=>passState(p)[1]==='ok').length, today=S.data.visits.filter(v=>iso(v.t)===iso(new Date())).length;
+  const bk=S.data.bookings.filter(b=>b.status==='confirmed').sort((a,b)=>a.date.localeCompare(b.date));
+  const threads={};sorted(S.data.messages,'t','asc').forEach(m=>{threads[m.uid]=m});
+  return `${openAlerts().map(a=>`<div class="banner" role="alert"><div><b>Panic alert · Apt ${esc(a.apt)}</b><div class="small">${esc(a.name)} · ${T(a.t)}${a.ack?' · guard acknowledged':' · not yet acknowledged'}</div></div><button class="btn sm" data-act="resolve" data-id="${a.id}">Mark resolved</button></div>`).join('')}
+  <div class="kpis"><div class="kpi"><div class="caps">Residents</div><b>${ok.length}</b><span class="small muted">approved</span></div>
+    <div class="kpi"><div class="caps">Awaiting approval</div><b>${pending.length}</b><span class="small muted">requests</span></div>
+    <div class="kpi"><div class="caps">Active passes</div><b>${act}</b><span class="small muted">issued by residents</span></div>
+    <div class="kpi"><div class="caps">Entries today</div><b>${today}</b><span class="small muted">logged by the booth</span></div></div>
+  <div class="cols"><div class="stack">
+    <div class="card ${pending.length?'approve':''}"><h2>Approval requests</h2><div class="list">${pending.length?pending.map(u=>`<div class="item"><div><b>${esc(u.name)}</b><div class="small muted">Apartment ${esc(u.apt)} · asked ${DT(u.t)}</div></div><div class="row" style="flex-wrap:nowrap"><button class="btn ghost sm" data-act="m-reject" data-id="${u.id}">Decline</button><button class="btn sm" data-act="m-approve" data-id="${u.id}">Approve</button></div></div>`).join(''):'<div class="empty">No pending requests. New residents appear here after they enter your code.</div>'}</div></div>
+    <div class="card"><h2>Residents</h2><div class="list">${ok.length?ok.sort((a,b)=>String(a.apt).localeCompare(String(b.apt),undefined,{numeric:true})).map(u=>`<div class="item"><div><b>Apt ${esc(u.apt)}</b><div class="small muted">${esc(u.name)}</div></div><button class="btn ghost sm" data-act="m-remove" data-id="${u.id}">Remove</button></div>`).join(''):'<div class="empty">No approved residents yet.</div>'}</div></div>
+    <div class="card"><h2>Reservations</h2><div class="list">${bk.length?bk.map(b=>`<div class="item"><div><b>${AMEN[b.amenity].name}</b><div class="small muted">${D(b.date+'T12:00')} · ${b.slot} · Apt ${esc(b.apt)}</div></div><button class="btn ghost sm" data-act="bk-cancel" data-id="${b.id}">Cancel</button></div>`).join(''):'<div class="empty">No reservations.</div>'}</div></div>
+  </div><div class="stack">
+    <div class="card flat"><div class="caps">${esc(c.name||'Your community')} · invite code</div><div class="code">${esc(S.m.cid)}</div><div class="row"><div class="small muted">Booth PIN <span class="mono"><b>${esc(c.pin||'')}</b></span> · give both to your guards</div><button class="btn ghost sm" data-act="copy" data-v="${esc(S.m.cid)}">Copy code</button></div></div>
+    <form class="card" data-form="post"><h2>Post an announcement</h2>
+      <label>Title<input name="title" required maxlength="60" id="atitle"></label>
+      <label>Message<textarea name="body" required maxlength="300" id="abody"></textarea></label>
+      <div class="row"><label style="flex:1">Level<select name="level" id="alevel"><option>Info</option><option>Important</option></select></label><button class="btn" style="align-self:flex-end">Publish to residents</button></div></form>
+    <div class="card"><h2>Messages</h2>${Object.keys(threads).length?Object.values(threads).map(m=>`<div class="stack"><div class="msg">${esc(m.text)}<div class="small muted">${esc(m.name)} · Apt ${esc(m.apt)} · ${T(m.t)}</div></div>
+      <form class="row" style="flex-wrap:nowrap" data-form="reply"><input type="hidden" name="uid" value="${esc(m.uid)}"><input type="hidden" name="apt" value="${esc(m.apt)}"><input type="hidden" name="rname" value="${esc(m.name)}"><input name="text" required maxlength="300" placeholder="Reply to Apt ${esc(m.apt)}" id="rp-${esc(m.uid)}"><button class="btn">Reply</button></form></div>`).join(''):'<div class="empty">No messages from residents.</div>'}</div>
+    <div class="card"><h2>Recent entries</h2><div class="list">${S.data.visits.length?S.data.visits.slice(0,6).map(v=>`<div class="item"><div><b>${esc(v.name)}</b><div class="small muted">Apt ${esc(v.apt)} · ${T(v.t)}</div></div>${pill(vPill(v.status))}</div>`).join(''):'<div class="empty">No entries yet.</div>'}</div></div>${leaveBlock()}
+  </div></div>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  const tools=$('#tools');
+  if(S.err){tools.innerHTML='';$('#app').innerHTML=`<div class="formwrap" style="margin-top:40px"><div class="card"><h2>Sign in to continue</h2><p class="muted">${esc(S.err)}</p></div></div>`;return}
+  if(S.ready&&!S.user){tools.innerHTML='';$('#cname').textContent='Smart access for your building';$('#app').innerHTML=authView();return}
+  if(!S.ready){tools.innerHTML='';$('#app').innerHTML=`<div class="formwrap" style="margin-top:60px"><div class="card flat"><b>Loading your account…</b><div class="small muted">Checking who you are and which building you belong to.</div></div></div>`;return}
+  const held=['admin','guard','resident'].filter(r=>S.mems.some(m=>m.role===r));
+  $('#cname').textContent=S.community&&S.m?S.community.name:'Smart access for your building';
+  tools.innerHTML=(held.length?`<div class="seg" role="group" aria-label="View as">${held.map(r=>`<button aria-pressed="${S.role===r&&!S.adding}" data-act="role" data-v="${r}">${ROLE[r]}</button>`).join('')}</div>`:'')+(held.length&&held.length<3&&!S.adding?`<button class="btn ghost sm" data-act="add-role">Add role</button>`:'')+((S.m&&(S.m.role==='guard'||S.m.role==='admin')&&window.Notification&&Notification.permission==='default')?`<button class="btn ghost sm" data-act="notify">Enable alerts</button>`:'')+`<button class="btn ghost sm" data-act="logout">Sign out</button>`;
+  let html;
+  if(!S.m||S.adding)html=welcome();
+  else html={resident,guard,admin}[S.m.role]();
+  $('#app').innerHTML=html;
+  document.querySelectorAll('[data-qr]').forEach(el=>{try{el.innerHTML='';new QRCode(el,{text:el.dataset.qr,width:110,height:110,colorDark:'#000000',colorLight:'#ffffff'})}catch(e){el.outerHTML='<div class="small muted">QR unavailable, use the code</div>'}});
+}
+
+/* ---------- actions ---------- */
+const act=(type,body)=>api('act',Object.assign({m:S.m&&S.m.id,type},body));
+const A={
+  role:v=>{S.role=v;S.adding=false;try{localStorage.setItem('porton.role',v)}catch(e){}pick()},
+  'add-role':()=>{S.adding=true;S.join=null}, 'cancel-add':()=>{S.adding=false;S.join=null},
+  join:v=>{S.join=v||null},
+  'auth-mode':v=>{S.authMode=v},
+  logout:async()=>{await api('logout',{});S.user=null;S.mems=[];S.m=null;S.role=null;S.uid=null;S.data=blank();S.community=null;S.subKey='~';S.adding=false;S.join=null},
+  notify:()=>Notification.requestPermission().then(p=>toast(p==='granted'?'Alerts enabled on this device':'Alerts blocked in browser settings')),
+  tab:v=>{S.tab=v;S.panic=null;window.scrollTo(0,0)},
+  approve:(v,id)=>act('visitSet',{id,status:'approved'}).then(()=>toast('Guard notified. Gate will open.')),
+  deny:(v,id)=>act('visitSet',{id,status:'denied'}),
+  simulate:()=>act('simulate').then(()=>toast('The gate is calling your apartment')),
+  copy:v=>{try{navigator.clipboard.writeText(v).then(()=>toast('Copied'),()=>toast('Select the code to copy'))}catch(e){toast('Select the code to copy')}},
+  revoke:(v,id)=>act('passRevoke',{id}),
+  'bk-am':v=>{S.bk.amenity=v;S.bk.slot=null}, 'bk-slot':v=>{S.bk.slot=v},
+  'bk-go':()=>{const b=S.bk;if(!b.slot)return;return act('bookingCreate',{amenity:b.amenity,date:b.date,slot:b.slot}).then(()=>{b.slot=null;toast(AMEN[b.amenity].name+' reserved')})},
+  'bk-cancel':(v,id)=>act('bookingCancel',{id}),
+  'panic-ask':()=>{S.panic='confirm'}, 'panic-no':()=>{S.panic=null},
+  'panic-send':()=>{S.panic=null;return act('alertCreate').then(()=>toast('Alert sent to the booth and admin'))},
+  'panic-cancel':(v,id)=>act('alertClose',{id}),
+  'g-allow':(v,id)=>act('visitSet',{id,status:'approved',via:'Phone'}),
+  'g-deny':(v,id)=>act('visitSet',{id,status:'denied'}),
+  open:(v,id)=>act('visitSet',{id,status:'entered'}).then(()=>toast('Gate opened')),
+  ack:(v,id)=>act('alertAck',{id}),
+  resolve:(v,id)=>act('alertClose',{id}),
+  'm-approve':(v,id)=>act('memberSet',{id,status:'approved'}).then(()=>toast('Resident approved')),
+  'm-reject':(v,id)=>act('memberSet',{id,status:'rejected'}),
+  'm-remove':(v,id)=>act('memberSet',{id,status:'removed'}),
+  reapply:()=>act('reapply'),
+  'leave-ask':()=>{S.confirmLeave=true}, 'leave-no':()=>{S.confirmLeave=false},
+  'leave-go':()=>{S.confirmLeave=false;S.role=null;return act('leave')}
+};
+const FORMS={
+  login:d=>api('login',d),
+  register:d=>api('register',d).then(()=>toast('Account created')),
+  'admin-new':d=>api('createCommunity',d).then(r=>{toast('Community created');return r}),
+  'res-join':d=>api('joinResident',d).then(r=>{toast('Request sent to your administrator');return r}),
+  'guard-join':d=>api('joinGuard',d),
+  pass:d=>act('passCreate',d).then(()=>toast('Pass created')),
+  msg:d=>act('messageSend',{text:d.text}),
+  reply:d=>act('messageReply',{uid:d.uid,text:d.text}).then(()=>toast('Reply sent')),
+  post:d=>act('postCreate',d).then(()=>toast('Announcement published')),
+  visit:d=>act('visitCreate',d).then(r=>toast(r.ringing?'Resident is being notified':'Call the resident to confirm')),
+  scan:d=>act('passScan',{code:d.code}).then(r=>{S.scan=r.result})
+};
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  const fn=A[b.dataset.act];if(!fn)return;
+  try{await fn(b.dataset.v,b.dataset.id)}catch(err){fail(err)}
+  render();sync();
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='bkdate'&&e.target.value){S.bk.date=e.target.value;S.bk.slot=null;render()}
+});
+document.addEventListener('submit',async e=>{
+  const f=e.target.dataset.form;if(!f)return;e.preventDefault();
+  const d=Object.fromEntries(new FormData(e.target));
+  try{
+    const r=await FORMS[f](d);
+    if(r&&r.role){S.role=r.role;try{localStorage.setItem('porton.role',r.role)}catch(x){}S.adding=false;S.join=null}
+  }catch(err){fail(err);return}
+  render();await sync();
+});
+
+/* ---------- start ---------- */
+render();
+sync();
+setInterval(()=>{if(!document.hidden&&S.user)sync()},3000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "Portón",
+  "short_name": "Portón",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EDF0F4",
+  "theme_color": "#2347E8",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
