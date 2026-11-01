@@ -50,3 +50,14 @@ Or with the CLI: `npm i -g vercel`, then `vercel` inside this folder, add the Ne
 5. For local development, install Node.js 20+, run `npm install`, configure `.env.local`, and use `npx vercel dev` to emulate the serverless API.
 
 **Important:** This release is not a production security audit. Validate access-control logic, authentication, database configuration, rate limits, and privacy obligations before real residential use. The gate actions represent app workflow states, not physical hardware control. iOS/Android store packages are not included.
+
+
+## V4 changes (2026-11-01)
+- Premium hybrid responsive interface, focus states and reduced-motion support.
+- Strict resident approval and guard check-in state transitions.
+- Atomic QR invitation redemption to prevent concurrent double use.
+- Corrected UI terminology: **Check in** logs access; it does not physically open a gate.
+- Pass validation requires an approved guard/admin account and checks community, expiry, revocation, and usage.
+
+### Important before production
+The app currently uses 3-second polling while the page is active; it does not yet provide native push notifications, a camera-based QR scanner, photographed ID verification, or gate hardware integration. Guard PIN authentication should be strengthened with individual guard invitations, rate limiting, and audit logs before handling real-world visitor IDs. Do not use as a sole physical security control until independently tested and reviewed.

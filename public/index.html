@@ -12,6 +12,7 @@
 <title>Portón One · Smart living</title>
 <meta name="description" content="Portón One — premium community management for residents, security and administrators.">
 <link rel="stylesheet" href="/premium-v3.css">
+<link rel="stylesheet" href="/porton-v4.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -368,11 +369,11 @@ function guard(){
       <label>Type<select name="kind" id="gkind">${Object.entries(KIND).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label></div>
       <datalist id="apts">${approvedApts().map(a=>`<option value="${esc(a)}"></option>`).join('')}</datalist>
       <button class="btn">Notify resident</button></form>
-    <form class="card" data-form="scan"><h2>Scan pass</h2><div class="row" style="flex-wrap:nowrap"><input name="code" required id="gcode" class="mono" placeholder="PZ-XXXXXX" style="text-transform:uppercase"><button class="btn">Check</button></div>
-      <div>${S.scan?`<div class="card flat"><div class="row"><b>${esc(S.scan.title)}</b>${pill(S.scan.pill)}</div><div class="small muted">${esc(S.scan.sub)}</div></div>`:'<div class="small muted">Enter the code shown under the visitor’s QR.</div>'}</div></form>
+    <form class="card" data-form="scan"><h2>Scan pass</h2><div class="row" style="flex-wrap:nowrap"><input name="code" required id="gcode" class="mono" placeholder="PZ-XXXXXX" style="text-transform:uppercase"><button class="btn">Verify pass</button></div>
+      <div>${S.scan?`<div class="card flat"><div class="row"><b>${esc(S.scan.title)}</b>${pill(S.scan.pill)}</div><div class="small muted">${esc(S.scan.sub)}</div></div>`:'<div class="small muted">Enter the invitation code. Verification records the entry. Never admit on a rejected result.</div>'}</div></form>
   </div>
   <div class="stack"><div class="card"><h2>At the gate</h2><div class="list">${q.length?q.map(v=>`<div class="item"><div><b>${esc(v.name)}</b><div class="small muted">${esc(KIND[v.kind])} → Apt ${esc(v.apt)}${v.plate?' · '+esc(v.plate):''} · ${T(v.t)}</div></div>
-      <div class="row" style="flex-wrap:nowrap">${v.status==='approved'?`<button class="btn ok sm" data-act="open" data-id="${v.id}">Open gate</button>`:hasApp(v.apt)?pill(['Ringing resident','warn']):`<button class="btn ghost sm" data-act="g-deny" data-id="${v.id}">Deny</button><button class="btn sm" data-act="g-allow" data-id="${v.id}">OK’d by phone</button>`}</div></div>`).join(''):'<div class="empty">Nobody waiting.</div>'}</div></div>
+      <div class="row" style="flex-wrap:nowrap">${v.status==='approved'?`<button class="btn ok sm" data-act="open" data-id="${v.id}">Check in</button>`:hasApp(v.apt)?pill(['Ringing resident','warn']):`<button class="btn ghost sm" data-act="g-deny" data-id="${v.id}">Deny</button><button class="btn sm" data-act="g-allow" data-id="${v.id}">OK’d by phone</button>`}</div></div>`).join(''):'<div class="empty">Nobody waiting.</div>'}</div></div>
     <div class="card"><div class="row"><h2>Entry log</h2><span class="pill">Recent activity</span></div><label>Find an entry<input type="search" class="live-filter" data-target="gate-entry-log" placeholder="Search visitor or apartment" aria-label="Search entry log"></label><div class="list" id="gate-entry-log">${S.data.visits.length?S.data.visits.slice(0,12).map(v=>`<div class="item"><div><b>${esc(v.name)}</b><div class="small muted">Apt ${esc(v.apt)} · ${esc(KIND[v.kind])} · ${esc(v.via)} · ${T(v.t)}</div></div>${pill(vPill(v.status))}</div>`).join(''):'<div class="empty">No entries yet.</div>'}</div></div>${leaveBlock()}</div></div>`;
 }
 /* admin */
@@ -428,7 +429,7 @@ const A={
   logout:async()=>{await api('logout',{});S.user=null;S.mems=[];S.m=null;S.role=null;S.uid=null;S.data=blank();S.community=null;S.subKey='~';S.adding=false;S.join=null},
   notify:()=>Notification.requestPermission().then(p=>toast(p==='granted'?'Alerts enabled on this device':'Alerts blocked in browser settings')),
   tab:v=>{S.tab=v;S.panic=null;window.scrollTo(0,0)},
-  approve:(v,id)=>act('visitSet',{id,status:'approved'}).then(()=>toast('Guard notified. Gate will open.')),
+  approve:(v,id)=>act('visitSet',{id,status:'approved'}).then(()=>toast('Guard notified. Guard can now check in the visitor.')),
   deny:(v,id)=>act('visitSet',{id,status:'denied'}),
   simulate:()=>act('simulate').then(()=>toast('The gate is calling your apartment')),
   copy:v=>{try{navigator.clipboard.writeText(v).then(()=>toast('Copied'),()=>toast('Select the code to copy'))}catch(e){toast('Select the code to copy')}},
@@ -441,7 +442,7 @@ const A={
   'panic-cancel':(v,id)=>act('alertClose',{id}),
   'g-allow':(v,id)=>act('visitSet',{id,status:'approved',via:'Phone'}),
   'g-deny':(v,id)=>act('visitSet',{id,status:'denied'}),
-  open:(v,id)=>act('visitSet',{id,status:'entered'}).then(()=>toast('Gate opened')),
+  open:(v,id)=>act('visitSet',{id,status:'entered'}).then(()=>toast('Visitor checked in · entry logged')),
   ack:(v,id)=>act('alertAck',{id}),
   resolve:(v,id)=>act('alertClose',{id}),
   'm-approve':(v,id)=>act('memberSet',{id,status:'approved'}).then(()=>toast('Resident approved')),

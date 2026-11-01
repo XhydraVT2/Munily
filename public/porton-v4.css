@@ -1,0 +1,17 @@
+/* Portón One V4: premium hybrid UI */
+:root{--accent:#395cff;--bg:#eef2fa;--soft:#e9efff;--line:#dce4f1;--f-display:'Bricolage Grotesque',system-ui,sans-serif}
+body{background:radial-gradient(ellipse 75% 40% at 8% 0%,rgba(83,125,255,.13),transparent 70%),radial-gradient(ellipse 65% 45% at 100% 45%,rgba(64,200,211,.08),transparent 70%),var(--bg);background-attachment:fixed}
+.card,.kpi,.phone,.hero,.banner{box-shadow:0 16px 48px rgba(22,46,96,.055),0 2px 8px rgba(22,46,96,.035);border:1px solid var(--line);transition:transform .23s ease,box-shadow .23s ease,border-color .23s ease}
+.card:hover,.kpi:hover{transform:translateY(-2px);box-shadow:0 24px 56px rgba(28,54,116,.105);border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}
+button,.btn,.chip{transition:transform .16s ease,background .2s ease,box-shadow .2s ease}
+button:not(:disabled):active{transform:scale(.97)}
+.btn:not(.ghost):not(.danger){background:linear-gradient(130deg,#4968ff,#2747db);color:white;box-shadow:0 8px 18px rgba(52,87,232,.19)}
+.btn:not(.ghost):not(.danger):hover{box-shadow:0 11px 25px rgba(52,87,232,.3)}
+.workspace-heading{padding:16px 2px 12px}.workspace-heading h1{letter-spacing:-.055em}
+.kpi{position:relative;overflow:hidden}.kpi::after{content:'';position:absolute;width:110px;height:110px;right:-55px;top:-55px;background:radial-gradient(circle,rgba(86,119,255,.13),transparent 70%);pointer-events:none}
+.status-live{backdrop-filter:blur(14px)}
+.phone{overflow:hidden}.nav{backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 38%,transparent);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+@media(max-width:720px){.workspace-heading{padding-top:8px}.card:hover,.kpi:hover{transform:none}}
+:root[data-theme=dark]{--bg:#0a1020;--accent:#7995ff;--line:#273654}
