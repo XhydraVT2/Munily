@@ -9,7 +9,9 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
-<title>Portón</title>
+<title>Portón One · Smart living</title>
+<meta name="description" content="Portón One — premium community management for residents, security and administrators.">
+<link rel="stylesheet" href="/premium-v3.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -282,6 +284,7 @@ function rHome(){
   ${c?`<div class="call" role="alert"><div class="caps" style="color:inherit;opacity:.8">Virtual intercom · Gate</div>
     <div><b style="font-size:1.15rem">${esc(c.name)}</b><div class="small" style="opacity:.9">${esc(KIND[c.kind])}${c.plate?' · '+esc(c.plate):''} is asking to come in</div></div>
     <div class="row" style="flex-wrap:nowrap"><button class="btn ghost block" data-act="deny" data-id="${c.id}">Deny</button><button class="btn block" data-act="approve" data-id="${c.id}">Let them in</button></div></div>`:''}
+  <div class="role-intro"><span class="live-dot"></span> RESIDENT EXPERIENCE <span class="intro-sep">/</span> YOUR HOME, CONNECTED</div>
   <div class="quick">
     <button data-act="tab" data-v="visitors">${ic('pass')}New visitor pass</button>
     <button data-act="tab" data-v="book">${ic('cal')}Book an area</button>
@@ -356,7 +359,7 @@ function authView(){
 function guard(){
   const al=openAlerts(), q=S.data.visits.filter(v=>v.status==='pending'||v.status==='approved');
   const hasApp=apt=>approvedApts().includes(apt);
-  return `${al.map(a=>`<div class="banner" role="alert"><div><b>PANIC · Apt ${esc(a.apt)}</b><div class="small">${esc(a.name)} · ${T(a.t)}${a.ack?' · acknowledged '+T(a.ack):''}</div></div><div class="row">${a.ack?'':`<button class="btn sm" data-act="ack" data-id="${a.id}">Acknowledge</button>`}<button class="btn sm" data-act="resolve" data-id="${a.id}">Mark resolved</button></div></div>`).join('')}
+  return `<div class="workspace-heading"><div><div class="eyebrow">SECURITY OPERATIONS</div><h1>Gate control</h1><p class="muted">Live access requests and building security, all in one place.</p></div><span class="status-live"><span class="live-dot"></span> Live monitoring</span></div><div class="kpis"><div class="kpi"><div class="caps">Waiting at gate</div><b>${q.length}</b><span class="small muted">active requests</span></div><div class="kpi"><div class="caps">Security alerts</div><b>${al.length}</b><span class="small muted">unresolved</span></div><div class="kpi"><div class="caps">Entries recorded</div><b>${S.data.visits.length}</b><span class="small muted">all time</span></div></div>${al.map(a=>`<div class="banner" role="alert"><div><b>PANIC · Apt ${esc(a.apt)}</b><div class="small">${esc(a.name)} · ${T(a.t)}${a.ack?' · acknowledged '+T(a.ack):''}</div></div><div class="row">${a.ack?'':`<button class="btn sm" data-act="ack" data-id="${a.id}">Acknowledge</button>`}<button class="btn sm" data-act="resolve" data-id="${a.id}">Mark resolved</button></div></div>`).join('')}
   <div class="cols"><div class="stack">
     <form class="card" data-form="visit"><h2>Gate entry</h2>
       <label>Visitor name<input name="name" required maxlength="40" id="gname"></label>
@@ -370,7 +373,7 @@ function guard(){
   </div>
   <div class="stack"><div class="card"><h2>At the gate</h2><div class="list">${q.length?q.map(v=>`<div class="item"><div><b>${esc(v.name)}</b><div class="small muted">${esc(KIND[v.kind])} → Apt ${esc(v.apt)}${v.plate?' · '+esc(v.plate):''} · ${T(v.t)}</div></div>
       <div class="row" style="flex-wrap:nowrap">${v.status==='approved'?`<button class="btn ok sm" data-act="open" data-id="${v.id}">Open gate</button>`:hasApp(v.apt)?pill(['Ringing resident','warn']):`<button class="btn ghost sm" data-act="g-deny" data-id="${v.id}">Deny</button><button class="btn sm" data-act="g-allow" data-id="${v.id}">OK’d by phone</button>`}</div></div>`).join(''):'<div class="empty">Nobody waiting.</div>'}</div></div>
-    <div class="card"><h2>Entry log</h2><div class="list">${S.data.visits.length?S.data.visits.slice(0,12).map(v=>`<div class="item"><div><b>${esc(v.name)}</b><div class="small muted">Apt ${esc(v.apt)} · ${esc(KIND[v.kind])} · ${esc(v.via)} · ${T(v.t)}</div></div>${pill(vPill(v.status))}</div>`).join(''):'<div class="empty">No entries yet.</div>'}</div></div>${leaveBlock()}</div></div>`;
+    <div class="card"><div class="row"><h2>Entry log</h2><span class="pill">Recent activity</span></div><label>Find an entry<input type="search" class="live-filter" data-target="gate-entry-log" placeholder="Search visitor or apartment" aria-label="Search entry log"></label><div class="list" id="gate-entry-log">${S.data.visits.length?S.data.visits.slice(0,12).map(v=>`<div class="item"><div><b>${esc(v.name)}</b><div class="small muted">Apt ${esc(v.apt)} · ${esc(KIND[v.kind])} · ${esc(v.via)} · ${T(v.t)}</div></div>${pill(vPill(v.status))}</div>`).join(''):'<div class="empty">No entries yet.</div>'}</div></div>${leaveBlock()}</div></div>`;
 }
 /* admin */
 function admin(){
@@ -378,14 +381,14 @@ function admin(){
   const act=S.data.passes.filter(p=>passState(p)[1]==='ok').length, today=S.data.visits.filter(v=>iso(v.t)===iso(new Date())).length;
   const bk=S.data.bookings.filter(b=>b.status==='confirmed').sort((a,b)=>a.date.localeCompare(b.date));
   const threads={};sorted(S.data.messages,'t','asc').forEach(m=>{threads[m.uid]=m});
-  return `${openAlerts().map(a=>`<div class="banner" role="alert"><div><b>Panic alert · Apt ${esc(a.apt)}</b><div class="small">${esc(a.name)} · ${T(a.t)}${a.ack?' · guard acknowledged':' · not yet acknowledged'}</div></div><button class="btn sm" data-act="resolve" data-id="${a.id}">Mark resolved</button></div>`).join('')}
+  return `<div class="workspace-heading"><div><div class="eyebrow">PROPERTY MANAGEMENT</div><h1>Overview</h1><p class="muted">${esc(c.name||'Your community')} · Your community at a glance</p></div><span class="status-live"><span class="live-dot"></span> Live overview</span></div>${openAlerts().map(a=>`<div class="banner" role="alert"><div><b>Panic alert · Apt ${esc(a.apt)}</b><div class="small">${esc(a.name)} · ${T(a.t)}${a.ack?' · guard acknowledged':' · not yet acknowledged'}</div></div><button class="btn sm" data-act="resolve" data-id="${a.id}">Mark resolved</button></div>`).join('')}
   <div class="kpis"><div class="kpi"><div class="caps">Residents</div><b>${ok.length}</b><span class="small muted">approved</span></div>
     <div class="kpi"><div class="caps">Awaiting approval</div><b>${pending.length}</b><span class="small muted">requests</span></div>
     <div class="kpi"><div class="caps">Active passes</div><b>${act}</b><span class="small muted">issued by residents</span></div>
     <div class="kpi"><div class="caps">Entries today</div><b>${today}</b><span class="small muted">logged by the booth</span></div></div>
   <div class="cols"><div class="stack">
     <div class="card ${pending.length?'approve':''}"><h2>Approval requests</h2><div class="list">${pending.length?pending.map(u=>`<div class="item"><div><b>${esc(u.name)}</b><div class="small muted">Apartment ${esc(u.apt)} · asked ${DT(u.t)}</div></div><div class="row" style="flex-wrap:nowrap"><button class="btn ghost sm" data-act="m-reject" data-id="${u.id}">Decline</button><button class="btn sm" data-act="m-approve" data-id="${u.id}">Approve</button></div></div>`).join(''):'<div class="empty">No pending requests. New residents appear here after they enter your code.</div>'}</div></div>
-    <div class="card"><h2>Residents</h2><div class="list">${ok.length?ok.sort((a,b)=>String(a.apt).localeCompare(String(b.apt),undefined,{numeric:true})).map(u=>`<div class="item"><div><b>Apt ${esc(u.apt)}</b><div class="small muted">${esc(u.name)}</div></div><button class="btn ghost sm" data-act="m-remove" data-id="${u.id}">Remove</button></div>`).join(''):'<div class="empty">No approved residents yet.</div>'}</div></div>
+    <div class="card"><div class="row"><h2>Residents</h2><span class="pill acc">${ok.length} active</span></div><label>Find a resident<input type="search" class="live-filter" data-target="resident-directory" placeholder="Search by name or apartment" aria-label="Search residents"></label><div class="list" id="resident-directory">${ok.length?ok.sort((a,b)=>String(a.apt).localeCompare(String(b.apt),undefined,{numeric:true})).map(u=>`<div class="item"><div><b>Apt ${esc(u.apt)}</b><div class="small muted">${esc(u.name)}</div></div><button class="btn ghost sm" data-act="m-remove" data-id="${u.id}">Remove</button></div>`).join(''):'<div class="empty">No approved residents yet.</div>'}</div></div>
     <div class="card"><h2>Reservations</h2><div class="list">${bk.length?bk.map(b=>`<div class="item"><div><b>${AMEN[b.amenity].name}</b><div class="small muted">${D(b.date+'T12:00')} · ${b.slot} · Apt ${esc(b.apt)}</div></div><button class="btn ghost sm" data-act="bk-cancel" data-id="${b.id}">Cancel</button></div>`).join(''):'<div class="empty">No reservations.</div>'}</div></div>
   </div><div class="stack">
     <div class="card flat"><div class="caps">${esc(c.name||'Your community')} · invite code</div><div class="code">${esc(S.m.cid)}</div><div class="row"><div class="small muted">Booth PIN <span class="mono"><b>${esc(c.pin||'')}</b></span> · give both to your guards</div><button class="btn ghost sm" data-act="copy" data-v="${esc(S.m.cid)}">Copy code</button></div></div>
@@ -466,6 +469,12 @@ document.addEventListener('click',async e=>{
   const fn=A[b.dataset.act];if(!fn)return;
   try{await fn(b.dataset.v,b.dataset.id)}catch(err){fail(err)}
   render();sync();
+});
+document.addEventListener('input',e=>{
+  if(!e.target.matches('.live-filter'))return;
+  const target=document.getElementById(e.target.dataset.target);if(!target)return;
+  const query=e.target.value.trim().toLocaleLowerCase();
+  target.querySelectorAll('.item').forEach(item=>{item.hidden=!item.textContent.toLocaleLowerCase().includes(query)});
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='bkdate'&&e.target.value){S.bk.date=e.target.value;S.bk.slot=null;render()}

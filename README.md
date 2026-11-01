@@ -32,3 +32,21 @@ Or with the CLI: `npm i -g vercel`, then `vercel` inside this folder, add the Ne
 - Permissions are enforced on the server: only admins approve residents, only residents answer their own intercom calls, only guards and admins open the gate.
 - Browser notifications work while the app is open. Push notifications while the app is closed need a service worker and web push keys, which is a natural next step.
 - Munily's face and license-plate recognition and gate or elevator hardware are not part of this project.
+
+## Premium Hybrid V3 updates
+
+- Distinct Portón One premium styling for desktop and mobile, including glass-like surfaces, refined cards, motion, dark theme, and reduced-motion support.
+- Guard console now has a live operations header, queue/alert/entry KPIs, and an instant search for its visible entry log.
+- Admin console now has an overview header and instant search of approved residents.
+- Existing resident passes, bookings, chat, announcements, visitor approvals, and alert flows are preserved.
+- Added `vercel.json` and a separate `public/premium-v3.css` stylesheet.
+
+### Deployment checklist
+
+1. Upload the **contents** of `Munily-main` (not the parent ZIP) to a GitHub repository.
+2. Import into Vercel using Framework Preset **Other**, with root directory set to the project folder.
+3. Add `DATABASE_URL` from Neon Postgres and a long random `JWT_SECRET` in Vercel environment variables.
+4. Deploy; register an admin, then create separate resident and guard accounts to test permissions and real-time updates.
+5. For local development, install Node.js 20+, run `npm install`, configure `.env.local`, and use `npx vercel dev` to emulate the serverless API.
+
+**Important:** This release is not a production security audit. Validate access-control logic, authentication, database configuration, rate limits, and privacy obligations before real residential use. The gate actions represent app workflow states, not physical hardware control. iOS/Android store packages are not included.
